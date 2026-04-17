@@ -22,6 +22,7 @@ class _OnboardingScreen1State extends ConsumerState<OnboardingScreen1> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _ageController;
+  late TextEditingController _physicianController;
   bool _stageError = false;
 
   @override
@@ -30,12 +31,14 @@ class _OnboardingScreen1State extends ConsumerState<OnboardingScreen1> {
     final data = ref.read(onboardingNotifierProvider).data;
     _nameController = TextEditingController(text: data.fullName);
     _ageController = TextEditingController(text: data.age?.toString());
+    _physicianController = TextEditingController(text: data.physicianName);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
+    _physicianController.dispose();
     super.dispose();
   }
 
@@ -96,6 +99,16 @@ class _OnboardingScreen1State extends ConsumerState<OnboardingScreen1> {
                             if (age == null || age <= 0 || age > 120) return activeLocale.languageCode == 'en' ? 'Invalid age' : 'عمر غير صالح';
                             return null;
                           },
+                        ),
+                        const SizedBox(height: 24),
+
+                        AppTextField(
+                          label: activeLocale.languageCode == 'en' ? 'Primary Physician' : 'اسم الطبيب المعالج',
+                          hint: activeLocale.languageCode == 'en' ? 'Dr. Smith' : 'د. محمد',
+                          controller: _physicianController,
+                          validator: (v) => (v == null || v.isEmpty) 
+                            ? (activeLocale.languageCode == 'en' ? 'Physician name is required' : 'يرجى إدخال اسم الطبيب') 
+                            : null,
                         ),
                         const SizedBox(height: 32),
 
@@ -312,6 +325,7 @@ class _OnboardingScreen1State extends ConsumerState<OnboardingScreen1> {
               ref.read(onboardingNotifierProvider).data.copyWith(
                 fullName: _nameController.text.trim(),
                 age: int.tryParse(_ageController.text),
+                physicianName: _physicianController.text.trim(),
               ),
             );
             

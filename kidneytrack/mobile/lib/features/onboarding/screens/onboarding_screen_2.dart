@@ -94,28 +94,55 @@ class _OnboardingScreen2State extends ConsumerState<OnboardingScreen2> {
                         controller: _fluidController,
                         keyboardType: TextInputType.number,
                         suffixText: 'mL',
-                        validator: _requiredValidator(isAr),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return isAr ? 'هذا الحقل مطلوب' : 'Required';
+                          final val = int.tryParse(v);
+                          if (val == null || val < 500 || val > 3000) {
+                            return isAr ? 'يجب أن تكون بين 500 و 3000 مل' : 'Must be between 500 and 3000 mL';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 24),
 
                       _buildSectionTitle(isAr ? 'حدود العناصر الغذائية' : 'Nutrient Limits'),
                       _buildTwoColumnFields([
-                        (isAr ? 'بوتاسيوم (ملجم)' : 'Potassium (mg)', _potassiumController),
-                        (isAr ? 'صوديوم (ملجم)' : 'Sodium (mg)', _sodiumController),
+                        (isAr ? 'بوتاسيوم (ملجم)' : 'Potassium (mg)', _potassiumController, (v) {
+                          if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                          final val = int.tryParse(v);
+                          if (val == null || val < 1000 || val > 3500) {
+                             return isAr ? 'بين 1000-3500' : '1000-3500';
+                          }
+                          return null;
+                        }),
+                        (isAr ? 'صوديوم (ملجم)' : 'Sodium (mg)', _sodiumController, (v) {
+                          if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                          final val = int.tryParse(v);
+                          if (val == null || val < 500 || val > 3000) {
+                            return isAr ? 'بين 500-3000' : '500-3000';
+                          }
+                          return null;
+                        }),
                       ]),
                       const SizedBox(height: 16),
                       _buildTwoColumnFields([
-                        (isAr ? 'بروتين (جم)' : 'Protein (g)', _proteinController),
-                        (isAr ? 'فوسفور (ملجم)' : 'Phosphorus (mg)', _phosphorusController),
+                        (isAr ? 'بروتين (جم)' : 'Protein (g)', _proteinController, (v) {
+                          if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                          final val = int.tryParse(v);
+                          if (val == null || val < 30  || val > 120) {
+                            return isAr ? 'بين 30-120' : '30-120';
+                          }
+                          return null;
+                        }),
+                        (isAr ? 'فوسفور (ملجم)' : 'Phosphorus (mg)', _phosphorusController, (v) {
+                          if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                          final val = int.tryParse(v);
+                          if (val == null || val < 500 || val > 1500) {
+                            return isAr ? 'بين 500-1500' : '500-1500';
+                          }
+                          return null;
+                        }),
                       ]),
-                      const SizedBox(height: 32),
-
-                      _buildSectionTitle(isAr ? 'الفريق الطبي' : 'Medical Team'),
-                      AppTextField(
-                        label: isAr ? 'اسم الطبيب المعالج (اختياري)' : 'Primary Physician (Optional)',
-                        hint: isAr ? 'د. محمد' : 'Dr. Smith',
-                        controller: _physicianController,
-                      ),
                       const SizedBox(height: 32),
 
                       _buildNotificationToggle(isAr),
@@ -186,8 +213,9 @@ class _OnboardingScreen2State extends ConsumerState<OnboardingScreen2> {
     );
   }
 
-  Widget _buildTwoColumnFields(List<(String, TextEditingController)> fields) {
+  Widget _buildTwoColumnFields(List<(String, TextEditingController, String? Function(String?)?)> fields) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (int i = 0; i < fields.length; i++) ...[
           Expanded(
@@ -195,6 +223,7 @@ class _OnboardingScreen2State extends ConsumerState<OnboardingScreen2> {
               label: fields[i].$1,
               controller: fields[i].$2,
               keyboardType: TextInputType.number,
+              validator: fields[i].$3,
             ),
           ),
           if (i < fields.length - 1) const SizedBox(width: 16),
@@ -247,11 +276,6 @@ class _OnboardingScreen2State extends ConsumerState<OnboardingScreen2> {
     );
   }
 
-  String? Function(String?) _requiredValidator(bool isAr) {
-    return (v) => (v == null || v.isEmpty) 
-      ? (isAr ? 'هذا الحقل مطلوب' : 'Required') 
-      : null;
-  }
 
   Widget _buildBottomAction(BuildContext context, Locale activeLocale, OnboardingState state) {
     final isAr = activeLocale.languageCode == 'ar';

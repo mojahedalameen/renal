@@ -202,8 +202,20 @@ class AuthNotifier extends AsyncNotifier<Patient?> {
       //    - مستخدم موجود → UPDATE
       await _supabase.from('Patient').upsert(payload, onConflict: 'id');
 
-      if (data['onboardingComplete'] == true) {
+      // 6) مزامنة حالة الـ Onboarding مع بيانات المستخدم (Metadata) - محاولة أفضل (Best-effort)
+      if (payload['onboardingComplete'] == true) {
         await _cacheOnboarding(true);
+        
+        // تحديث الـ metadata في Auth بشكل غير معطل (Non-blocking)
+        unawaited(() async {
+          try {
+            await _supabase.auth.updateUser(
+              UserAttributes(data: {'onboarding_complete': true}),
+            );
+          } catch (e) {
+            debugPrint('Silent Metadata Sync Failure: $e');
+          }
+        }());
       }
 
       final updatedPatient = await _fetchPatient();

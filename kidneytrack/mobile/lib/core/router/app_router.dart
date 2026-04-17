@@ -118,6 +118,7 @@ class AppRouter {
         
         GoRoute(
           path: onboarding,
+          redirect: (context, state) => state.matchedLocation == onboarding ? '$onboarding/step1' : null,
           routes: [
             GoRoute(
               path: 'step1',
@@ -201,11 +202,21 @@ class AppRouter {
 class _RouterNotifier extends ChangeNotifier {
   final Ref _ref;
   _RouterNotifier(this._ref) {
-    // Only listen to auth state changes (login/logout/token refresh).
-    // Do NOT listen to authNotifierProvider here — it fires on
-    // patient data changes which would reset navigation mid-flow.
+    // 1. استماع لتغييرات حالة المصادقة (دخول/خروج)
     _ref.listen<AsyncValue<AuthState>>(authStateProvider, (_, __) {
       notifyListeners();
     });
+
+    // 2. استماع انتقائي لحالة الـ Onboarding فقط لضمان التحويل التلقائي عند الإكمال
+    // نستخدم select للتنبيه فقط عند انتقال الحالة من false إلى true
+    _ref.listen<bool?>(
+      authNotifierProvider.select((s) => s.valueOrNull?.onboardingComplete),
+      (previous, next) {
+        if (previous == false && next == true) {
+          debugPrint('Router: Onboarding completed, triggering redirect');
+          notifyListeners();
+        }
+      },
+    );
   }
 }

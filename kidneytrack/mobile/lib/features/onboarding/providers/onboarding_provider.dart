@@ -116,6 +116,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       };
 
       if (data.fullName != null) payload['full_name'] = data.fullName;
+      if (data.physicianName != null) payload['physician_name'] = data.physicianName;
       if (data.age != null) {
         // Calculate a rough birthdate since backend expects birthDate
         final birthYear = DateTime.now().year - data.age!;
